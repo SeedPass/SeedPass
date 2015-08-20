@@ -1,0 +1,145 @@
+<!doctype html>
+<html>
+
+	<head>
+	
+		<meta charset="utf-8">
+		
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+	
+		<title>SeedPass</title>
+		<meta name="description" content="Verifiably Secure Client-Side Password Generator">
+		
+		<script src="jquery/jquery-1.11.3.min.js"></script>
+		
+		<link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+		<link rel="stylesheet" href="bootstrap/css/bootstrap-theme.min.css">
+		<script src="bootstrap/js/bootstrap.min.js"></script>
+		
+		<script src="cryptojs/sha256.js"></script>
+		<script src="cryptojs/enc-base64-min.js"></script>
+		
+	</head>
+	
+	<body>
+	
+		<div class="container">
+		
+			<br>
+
+			<h1 class="text-center">SeedPass</h1>
+			<p class="lead text-center">Verifiably Secure Client-Side Password Generator</p>
+			
+			<!--
+			<div class="page-header">
+				<h1>SeedPass <small> - Verifiably Secure Client-Side Password Generator</small></h1>
+			</div>
+			-->
+			
+			<br>
+		
+			<div class="input-group">
+				<div class="input-group-addon input-lg">Seed</div>
+				<input id="s" class="form-control input-lg" type="password" placeholder="Secret Master Key">
+				<!--<span class="input-group-btn"><button id="sx" class="btn btn-default input-lg" type="button">X</button></span>-->
+			</div>
+		
+			<br>
+		
+			<div class="input-group">
+				<div class="input-group-addon input-lg">Name</div>
+				<input id="k" class="form-control input-lg" type="text" placeholder="Identifier (eg. &quot;google&quot;, &quot;youtube&quot;, or &quot;my blog&quot;)">
+				<!--<span class="input-group-btn"><button id="sx" class="btn btn-default input-lg" type="button">X</button></span>-->
+			</div>
+		
+			<br>
+
+			<div class="input-group">
+				<div class="input-group-addon input-lg">Password</div>
+				<input id="p" class="form-control input-lg" type="text" placeholder="Cryptographically Derived Password" readonly>
+			</div>
+			
+			<br>
+			<br>
+			
+			<div class="panel panel-default">
+				<div class="panel-heading">What is SeedPass?</div>
+				<div class="panel-body">
+					SeedPass can securely derive an unlimited number of passwords from a single master key. 
+					This way, you can use a different password for each account while still only having to remember one master key. 
+					SeedPass uses strong cryptography to make sure that the master key can not be recovered from the derived passwords. 
+					If you use different cryptographically derived passwords for all your accounts and one account is compromized, the single master key and all other accounts still remain secure.
+				</div>
+			</div>
+			
+			<div class="panel panel-default">
+				<div class="panel-heading">Client-Side Operation and Provable Security</div>
+				<div class="panel-body">
+					Even though SeedPass is accessible through your web browser, all operations are executed on your local computer. 
+					We never transmit any of your keys or passwords over the internet. 
+					As proof, SeedPass is hosted on a public GitHub reposity, so everyone can monitor the source code and verify it's security and integrity.
+					All changes made to the reposity remain publicly visible as long as SeedPass remains online.
+					If SeedPass would contain any hidden backdoors or the like, this could be proven easily and undeniably. 
+				</div>
+			</div>
+
+		</div>
+		
+		<script>
+
+			function encode(s) {
+				s = s.toString(CryptoJS.enc.Base64);
+				s = s.replace(/[^0-9a-zA-Z]/g, "");
+				s = s.substr(0, 16);
+				return s;
+			}
+			
+			function update() {
+			
+				var s, k, p;
+
+				// clear output
+				$("#p").val("");
+				
+				// get inputs
+				s = $("#s").val().trim();
+				k = $("#k").val().trim();
+				
+				// has inputs?
+				if(s != "" && k != "")
+				{
+					// hash inputs
+					s = CryptoJS.SHA256(s);
+					k = CryptoJS.SHA256(k);
+				
+					// mix inputs
+					p = CryptoJS.SHA256(s + k);
+					
+					// double hash
+					p = CryptoJS.SHA256(p);
+					
+					// set output
+					$("#p").val(encode(p));
+				}
+				
+			}
+		
+			$("#s").on("change keyup keypress", update);
+			$("#k").on("change keyup keypress", update);
+			
+			function press(e, c) {
+				if(e.keyCode == 13) { 
+					c.focus(); 
+					c.select();
+				}
+			}
+			
+			$("#s").on("keypress", function key(e) { press(e, $("#k")); });
+			$("#k").on("keypress", function key(e) { press(e, $("#p")); });
+			$("#p").on("keypress", function key(e) { press(e, $("#s")); });
+		
+		</script>
+
+	</body>
+	
+</html>
